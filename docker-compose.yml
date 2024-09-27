@@ -1,0 +1,45 @@
+version: '3.9'
+
+networks:
+  test-network:
+    driver: bridge
+
+services:
+  db:
+    image: mysql:8.4
+    env_file:
+      - .env.local
+    restart: 'always'
+    ports:
+      - "3306:3306"
+    container_name: testMysql-DB
+    environment:
+     - MYSQL_DB=${MYSQL_DB}
+     - MYSQL_USER=${MYSQL_USER}
+     - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+     - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+     - MYSQL_PORT=${MYSQL_PORT}
+    volumes:
+        - ./mysql/data:/var/lib/mysql
+    networks:
+      - test-network
+
+  app:
+    image: test-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env.local
+    ports:
+    - "8080:8080"
+    container_name: test-app
+    environment:
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DB=${MYSQL_DB}
+      - MYSQL_PORT=${MYSQL_PORT}
+    depends_on:
+      - db
